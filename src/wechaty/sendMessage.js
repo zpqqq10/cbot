@@ -60,7 +60,7 @@ async function handleCommands(question, room, aibot) {
     default:
       const randomNum = Math.random()
       // 如果问题太长就不走llm了
-      if (question.length < 256 && randomNum < 0.7) {
+      if (question.length < 256 && randomNum < 0.6) {
         await room.say(await aibot(question))
       } else {
         await room.say(getRandomEle(repoBullshit))
