@@ -27,11 +27,6 @@ async function autoReply(question, room, talker, type) {//根据聊天内容自�
 }
 
 async function handleCommands(question, room, aibot) {
-
-  // if (question.includes('ai问答')) {
-  //   //await room.say(await aibot(question)) //kimi的api用完了
-  //   return
-  // }
   switch (question) {
     case '新生指引':
       await room.say('浙大新生指引:https://zjuers.com/welcome')
@@ -60,7 +55,7 @@ async function handleCommands(question, room, aibot) {
       await room.say(getRandomEle(repoFeng))
       return
     default:
-      await room.say('？')
+      await room.say(await aibot(question)) 
       break
 
   }

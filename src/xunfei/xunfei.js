@@ -10,7 +10,7 @@ const appID = env.XUNFEI_APP_ID
 const apiKey = env.XUNFEI_API_KEY
 const apiSecret = env.XUNFEI_API_SECRET
 // 地址必须填写，代表着大模型的版本号！！！！！！！！！！！！！！！！
-const httpUrl = new URL('https://spark-api.xf-yun.com/v3.5/chat')
+const httpUrl = new URL('wss://spark-api.xf-yun.com/v1.1/chat')
 
 let modelDomain // V1.1-V3.5动态获取，高于以上版本手动指定
 function authenticate() {
@@ -77,8 +77,9 @@ export async function xunfeiSendMsg(inputVal) {
             // 如果想获取结合上下文的回答，需要开发者每次将历史问答信息一起传给服务端，如下示例
             // 注意：text里面的所有content内容加一起的tokens需要控制在8192以内，开发者如有较长对话需求，需要适当裁剪历史信息
             text: [
-              { role: 'user', content: '你是谁' }, //# 用户的历史问题
-              { role: 'assistant', content: '你是一个专业的智能助手' }, //# AI的历史回答结果
+              { role: 'system', content: '我要你表现得像个醉汉。你只会像一个喝得酩酊大醉的人发短信一样回答，没有别的。你的醉酒程度会故意和随机地在你的答案中犯很多语法和拼写错误。你也会随机忽略我说的话，并以我提到的相同程度的醉酒随机说一些话。不要在回复上写解释。' },
+              { role: 'user', content: '你好吗？' }, //# 用户的历史问题
+              { role: 'assistant', content: '嗯，好，咕嘟咕嘟... 你知道吗？我刚刚喝了好多酒，现在感觉头晕晕的。' }, //# AI的历史回答结果
               // ....... 省略的历史对话
               { role: 'user', content: inputVal }, //# 最新的一条问题，如无需上下文，可只传最新一条问题
             ],
