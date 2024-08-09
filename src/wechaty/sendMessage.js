@@ -1,11 +1,8 @@
 import { getServe } from './serve.js'
-import dotenv from 'dotenv'
-import { repo24, repoFeng } from '../assets/index.js'
+import env from '../utils/env.js';
+import { repo24, repoFeng, repoBullshit } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
 import { hitokoto, zaoan, wangyiyun } from '../utils/requests.js'
-// 加载环境变量
-dotenv.config()
-const env = dotenv.config().parsed // 环境参数
 
 // 从环境变量中导入机器人的名称
 const botName = env.BOT_NAME
@@ -26,7 +23,13 @@ async function autoReply(question, room, talker, type) {//根据聊天内容自�
   }
 }
 
+let lastQueryTime = 0
 async function handleCommands(question, room, aibot) {
+  if (Date.now() - lastQueryTime < 1500) {
+    console.log('休息时间')
+    return;
+  }
+  lastQueryTime = Date.now()
   switch (question) {
     case '新生指引':
       await room.say('浙大新生指引:https://zjuers.com/welcome')
@@ -55,29 +58,20 @@ async function handleCommands(question, room, aibot) {
       await room.say(getRandomEle(repoFeng))
       return
     default:
-      await room.say(await aibot(question)) 
+      const randomNum = Math.random()
+      // 如果问题太长就不走llm了
+      if (question.length < 256 && randomNum < 0.7) {
+        await room.say(await aibot(question))
+      } else {
+        await room.say(getRandomEle(repoBullshit))
+      }
       break
 
   }
   return
-  // if (question == '帮助') {
-  //   return await room.say('使用@bot或[bot]唤起机器人，可用的指令如下:\n\
-  //        1. 新生指引: 返回新生指引\n\
-  //        2. 帮助: 显示帮助\n\
-  //        3. {动漫/小说/诗词}一言: 返回相关的句子\n\
-  //        4. 早安心语[暂不可用]\n\
-  //        5. 24点\n\
-  //        其他功能锐意制作中!\n\
-  //   ')
-  // }
 }
 
-let lastQueryTime = 0
 export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
-  if (Date.now() - lastQueryTime < 1500) {
-    return;
-  }
-  lastQueryTime = Date.now()
   const getReply = getServe(ServiceType)
   const contact = msg.talker() // 发消息人
   const receiver = msg.to() // 消息接收人

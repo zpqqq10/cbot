@@ -5,13 +5,12 @@ import { Command } from 'commander'
 import { WechatyBuilder, ScanStatus, log } from 'wechaty'
 import inquirer from 'inquirer'
 import qrTerminal from 'qrcode-terminal'
-import dotenv from 'dotenv'
+import env from './src/utils/env.js'
 
 import fs from 'fs'
 import { defaultMessage } from './src/wechaty/sendMessage.js'
 import { Console } from 'console'
 
-const env = dotenv.config().parsed // 环境参数
 const { version, name } = JSON.parse(fs.readFileSync('./package.json', 'utf8'))
 
 // 扫码

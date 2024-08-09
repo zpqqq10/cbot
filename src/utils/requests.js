@@ -1,8 +1,5 @@
 import axios from 'axios'
-import dotenv from 'dotenv'
-// 加载环境变量
-dotenv.config()
-const env = dotenv.config().parsed // 环境参数
+import env from './env.js'
 //导入心语api
 const tianKey = env.TIAN_KEY
 

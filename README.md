@@ -39,17 +39,6 @@
 - 其他  
   （待实践）理论上使用 openAI 格式的 api，都可以使用，在 env 文件中修改对应的 api_key、model、proxy_url 即可。
 
-## 赞助商
-
-<p align="center">
-  <a href="https://302.ai" target="_blank">
-    <img src="./sponsors/302AI.png" alt="Hi" width="200" />
-  </a>
-</p>
-
-> 302.AI 是一个汇集全球顶级 AI 的自助平台，按需付费，零月费，零门槛使用各种类型 AI。 [产品链接](https://302.ai) | [网站介绍](https://help.302.ai)
-
-目前该项目流量较大，已经上过 27 次 [Github Trending 榜](https://github.com/trending)，如果您的公司或者产品需要推广，可以在下方二维码处联系我，我会在项目中加入您的广告，帮助您的产品获得更多的曝光。
 
 ## 开发/使用
 

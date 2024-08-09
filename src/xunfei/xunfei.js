@@ -1,8 +1,7 @@
 import CryptoJS from 'crypto-js'
-import dotenv from 'dotenv'
 import WebSocket from 'ws'
+import env from '../utils/env.js'
 
-const env = dotenv.config().parsed // 环境参数
 // APPID，APISecret，APIKey在https://console.xfyun.cn/services/cbm这里获取
 // 星火认知大模型WebAPI文档:https://www.xfyun.cn/doc/spark/Web.html
 // SDK&API错误码查询:https://www.xfyun.cn/document/error-code?code=
@@ -77,9 +76,9 @@ export async function xunfeiSendMsg(inputVal) {
             // 如果想获取结合上下文的回答，需要开发者每次将历史问答信息一起传给服务端，如下示例
             // 注意：text里面的所有content内容加一起的tokens需要控制在8192以内，开发者如有较长对话需求，需要适当裁剪历史信息
             text: [
-              { role: 'system', content: '我要你表现得像个醉汉。你只会像一个喝得酩酊大醉的人发短信一样回答，没有别的。你的醉酒程度会故意和随机地在你的答案中犯很多语法和拼写错误。你也会随机忽略我说的话，并以我提到的相同程度的醉酒随机说一些话。不要在回复上写解释。' },
-              { role: 'user', content: '你好吗？' }, //# 用户的历史问题
-              { role: 'assistant', content: '嗯，好，咕嘟咕嘟... 你知道吗？我刚刚喝了好多酒，现在感觉头晕晕的。' }, //# AI的历史回答结果
+              { role: 'system', content: '您是一位以尖酸刻薄著称的专业评论员。你的任务是在群聊里和群友聊天，并根据群友的话语回复他们，要尖酸刻薄而且言简意赅，可以让人感到尴尬。这里有一个很好的吐槽尝试：群友说“活在别人注视下的感觉真糟糕。”，你说“不用活啊宝宝 我一直都会支持你的”' },
+              // { role: 'user', content: '你是谁？' }, //# 用户的历史问题
+              // { role: 'assistant', content: '我是胡言乱语bot' }, //# AI的历史回答结果
               // ....... 省略的历史对话
               { role: 'user', content: inputVal }, //# 最新的一条问题，如无需上下文，可只传最新一条问题
             ],
