@@ -22,9 +22,9 @@ export async function zaoan() {
             // 解析JSON数据
             const content = response.data.result.content
             // 拼接字符串
-            const date = new Intl.DateTimeFormat('zh-u-ca-chinese', { dateStyle: 'long' }).format(new Date())
+            const date = new Intl.DateTimeFormat('zh-u-ca-chinese', { dateStyle: 'full' }).format(new Date()).slice(4)
 
-            const result = `早安心语！\n ${content} \n ${date} 【共勉】`;
+            const result = `早安吉祥！\[烟花\]/玫瑰/玫瑰/抱拳/抱拳\[烟花\]\n ${content} \n ${date} 【共勉】`;
             // console.log(result);
             return result;
         } else if (response.data.code == 150) {
