@@ -25,7 +25,7 @@ async function autoReply(question, room, talker, type) {//根据聊天内容自�
 
 let lastQueryTime = 0
 async function handleCommands(question, room, aibot) {
-  if (Date.now() - lastQueryTime < 1500) {
+  if (Date.now() - lastQueryTime < 3000) {
     await room.say('你们打字跟机关枪一样，打这么快我怎么回')
     return;
   }
