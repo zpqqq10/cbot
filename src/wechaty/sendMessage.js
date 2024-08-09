@@ -1,8 +1,8 @@
 import { getServe } from './serve.js'
 import dotenv from 'dotenv'
-import { repo24, repoFeng } from '../../assets/index.js'
+import { repo24, repoFeng } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
-import { hitokoto, zaoan } from '../utils/requests.js'
+import { hitokoto, zaoan, wangyiyun } from '../utils/requests.js'
 // 加载环境变量
 dotenv.config()
 const env = dotenv.config().parsed // 环境参数
@@ -26,54 +26,55 @@ async function autoReply(question, room, talker, type) {//根据聊天内容自�
   }
 }
 
-const checkAliasMinute = 5.0
-let lastCheckAliasTime = 0
 async function handleCommands(question, room, aibot) {
 
   // if (question.includes('ai问答')) {
   //   //await room.say(await aibot(question)) //kimi的api用完了
   //   return
   // }
-  if (question.includes('新生指引')) {
-    await room.say('浙大新生指引:https://zjuers.com/welcome')
-    return
+  switch (question) {
+    case '新生指引':
+      await room.say('浙大新生指引:https://zjuers.com/welcome')
+      return
+    case '24点':
+      await room.say('24点: ' + getRandomEle(repo24).join(' '))
+      return
+    case '早安心语':
+      await room.say(await zaoan())
+      // await room.say('说了不可用你还发，看不懂中文？')
+      return
+    case '开e！':
+    case '开e!':
+      await room.say(await wangyiyun())
+      return
+    case '动漫一言':
+      await room.say(await hitokoto('a&c=b'))
+      return
+    case '小说一言':
+      await room.say(await hitokoto('d'))
+      return
+    case '诗词一言':
+      await room.say(await hitokoto('i'))
+      return
+    case '发疯':
+      await room.say(getRandomEle(repoFeng))
+      return
+    default:
+      await room.say('？')
+      break
+
   }
-  if (question.includes('早安心语')) {
-    // await room.say(await zaoan())
-    await room.say('说了不可用你还发，看不懂中文？')
-    return
-  }
-  if (question == '24点') {
-    await room.say('24点: ' + getRandomEle(repo24).join(' '))
-    return
-  }
-  if (question == '帮助') {
-    return await room.say('使用@bot或[bot]唤起机器人，可用的指令如下:\n\
-         1. 新生指引: 返回新生指引\n\
-         2. 帮助: 显示帮助\n\
-         3. {动漫/小说/诗词}一言: 返回相关的句子\n\
-         4. 早安心语[暂不可用]\n\
-         5. 24点\n\
-         其他功能锐意制作中!\n\
-    ')
-  }
-  if (question == '动漫一言') {
-    await room.say(await hitokoto('a&c=b'))
-    return
-  }
-  if (question == '小说一言') {
-    await room.say(await hitokoto('d'))
-    return
-  }
-  if (question == '诗词一言') {
-    await room.say(await hitokoto('i'))
-    return
-  }
-  if (question == '发疯') {
-    await room.say(getRandomEle(repoFeng))
-    return
-  }
-  await room.say('？')
+  return
+  // if (question == '帮助') {
+  //   return await room.say('使用@bot或[bot]唤起机器人，可用的指令如下:\n\
+  //        1. 新生指引: 返回新生指引\n\
+  //        2. 帮助: 显示帮助\n\
+  //        3. {动漫/小说/诗词}一言: 返回相关的句子\n\
+  //        4. 早安心语[暂不可用]\n\
+  //        5. 24点\n\
+  //        其他功能锐意制作中!\n\
+  //   ')
+  // }
 }
 
 let lastQueryTime = 0
@@ -83,9 +84,6 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   }
   lastQueryTime = Date.now()
   const getReply = getServe(ServiceType)
-  //console.log('🌸🌸🌸 / content: ', msg.text())
-  //console.log('🌸🌸🌸 / contact: ', msg.talker().name())
-  //console.log('🌸🌸🌸 / type: ', msg.type())
   const contact = msg.talker() // 发消息人
   const receiver = msg.to() // 消息接收人
   const content = msg.text() // 消息内容
@@ -104,17 +102,20 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
     // 区分群聊和私聊
     if (isRoom && room) {
       const isMention = prefixName.some(prefix => {
-        return content.startsWith(prefix);
+        // startswith避免引用
+        // 微信的艾特后面是一个特殊符号，不是普通空格
+        return content.startsWith(prefix + ' ');
       });
+      // a bug in the lib
+      // const isMention = await msg.mentionSelf() // 是否艾特了机器人
       //查找是否包含所需的前缀,如[bot],@bot等
       if (!isMention) {
         autoReply(content, room, contact, msg.type())
         return;
       }
-      const question = (await msg.mentionText()) || content.replace(`${botName}`, '') // 去掉艾特的消息主体
-      console.log('🌸🌸🌸 / question: ', question)
+      const question = content.replace(`${botName} `, '') // 去掉艾特的消息主体
       //随机数
-      const timeout = 500 + Math.floor(Math.random() * 2000)
+      const timeout = 500 + Math.floor(Math.random() * 1000)
       await new Promise(resolve => setTimeout(resolve, timeout));//随机延迟
       await handleCommands(question, room, getReply)
 

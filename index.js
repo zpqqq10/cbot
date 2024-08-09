@@ -1,5 +1,6 @@
 //https://github.com/wangrongding/wechat-bot.
 //https://wechaty.js.org/zh/docs/api/
+import 'module-alias/register.js'
 import { Command } from 'commander'
 import { WechatyBuilder, ScanStatus, log } from 'wechaty'
 import inquirer from 'inquirer'
@@ -7,15 +8,11 @@ import qrTerminal from 'qrcode-terminal'
 import dotenv from 'dotenv'
 
 import fs from 'fs'
-import path, { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { defaultMessage } from './wechaty/sendMessage.js'
+import { defaultMessage } from './src/wechaty/sendMessage.js'
 import { Console } from 'console'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 const env = dotenv.config().parsed // 环境参数
-const { version, name } = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf8'))
+const { version, name } = JSON.parse(fs.readFileSync('./package.json', 'utf8'))
 
 // 扫码
 function onScan(qrcode, status) {
