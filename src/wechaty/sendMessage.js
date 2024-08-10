@@ -4,7 +4,7 @@ import { repo24, repoFeng, repoBullshit } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
 import { hitokoto, zaoan, wangyiyun,help } from '../utils/requests.js'
 import { botName, prefixName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
-import {replyTimeLimit,llmProbs,questionMaxLength,questionMinLength} from '../utils/env.js'
+import {replyTimeLimit,llmProbs,questionMaxLength,questionMinLength,numMsgGuide} from '../utils/env.js'
 
 let lastThree = [];
 let repeatedWord = '';
@@ -87,7 +87,7 @@ async function handleCommands(question, room, aibot) {
   }
   return
 }
-
+let msgCount={}
 export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   const getReply = getServe(ServiceType)
   const contact = msg.talker() // 发消息人
@@ -110,6 +110,12 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   try {
     // 区分群聊和私聊
     if (isRoom && room) {
+      if(msgCount[roomName]) msgCount[roomName]++;
+      else msgCount[roomName]=1
+      if(msgCount[roomName]==numMsgGuide){
+        msgCount[roomName]=0;
+        await room.say(`[每${numMsgGuide}条消息自动推送] 浙大新生指引:https://zjuers.com/welcome`)
+      }
       const isQuote=content.includes('- - - - - - - - - - - - - - -')
       if(isQuote){//是回复
         content=content.split('- - - - - - - - - - - - - - -\n')[1] //获取回复的内容

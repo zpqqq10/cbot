@@ -16,7 +16,7 @@ export const replyTimeLimit = parseInt(env.REPLY_TIME_LIMIT) // 机器人回复�
 export const llmProbs= parseFloat(env.LLM_PROBS)// 机器人回复时间限制,double
 export const questionMinLength = parseInt(env.QUESTION_MIN_LENGTH) // 问题最小长度
 export const questionMaxLength = parseInt(env.QUESTION_MAX_LENGTH) // 问题最大长度
-
+export const numMsgGuide=parseInt(env.NUM_MSG_GUIDE) //重复这么多消息时，触发新生指南
 export default env;
 // export default {botName,prefixName,aliasWhiteList,roomWhiteList,
 //     tianKey,llmProbs,replyTimeLimit,
