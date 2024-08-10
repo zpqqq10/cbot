@@ -102,19 +102,22 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   // if(isText){
   //   console.log('🌸🌸🌸 / content: ', content)
   // }
-  const isRoom = roomWhiteList.includes(roomName)  // 是否在群聊白名单内并且艾特了机器人
+  const isRoom = roomWhiteList.includes(roomName)  // 是否在群聊白名单内
   const isAlias = aliasWhiteList.includes(remarkName) || aliasWhiteList.includes(name) // 发消息的人是否在联系人白名单内
   const isBotSelf = botName === remarkName || botName === name // 是否是机器人自己
+  if(isRoom){
+    if(msgCount[roomName]) msgCount[roomName]++;
+    else msgCount[roomName]=1
+    console.log('msg',roomName,msgCount[roomName])
+  }
   // TODO 你们可以根据自己的需求修改这里的逻辑
   if (isBotSelf) return // 如果是机器人自己发送的消息或者消息类型不是文本则不处理
   try {
     // 区分群聊和私聊
     if (isRoom && room) {
-      if(msgCount[roomName]) msgCount[roomName]++;
-      else msgCount[roomName]=1
       if(msgCount[roomName]==numMsgGuide){
-        msgCount[roomName]=0;
-        await room.say(`[每${numMsgGuide}条消息自动推送] 浙大新生指引:https://zjuers.com/welcome`)
+        msgCount[roomName]=1;
+        await room.say(`[每${numMsgGuide}条消息自动推送] 不会还有新生没看新生指南吧？[旺柴][旺柴][旺柴]:https://zjuers.com/welcome`)
       }
       const isQuote=content.includes('- - - - - - - - - - - - - - -')
       if(isQuote){//是回复
@@ -138,6 +141,7 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
       const timeout = 500 + Math.floor(Math.random() * 1000)
       await new Promise(resolve => setTimeout(resolve, timeout));//随机延迟
       await handleCommands(question, room, getReply)
+      msgCount[roomName]++
 
     }
     // 私人聊天，白名单内的直接发送
