@@ -1,18 +1,10 @@
 import { getServe } from './serve.js'
-import env from '../utils/env.js';
+//import env from '../utils/env.js';
 import { repo24, repoFeng, repoBullshit } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
-import { hitokoto, zaoan, wangyiyun } from '../utils/requests.js'
+import { hitokoto, zaoan, wangyiyun,help } from '../utils/requests.js'
+import { botName, prefixName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
 
-// 从环境变量中导入机器人的名称
-const botName = env.BOT_NAME
-//触发机器人的前缀
-const prefixName = env.PREFIX ? env.PREFIX.split(',') : []
-// 从环境变量中导入联系人白名单
-const aliasWhiteList = env.ALIAS_WHITELIST ? env.ALIAS_WHITELIST.split(',') : []
-
-// 从环境变量中导入群聊白名单
-const roomWhiteList = env.ROOM_WHITELIST ? env.ROOM_WHITELIST.split(',') : []
 
 let lastThree = [];
 let repeatedWord = '';
@@ -97,13 +89,16 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   const getReply = getServe(ServiceType)
   const contact = msg.talker() // 发消息人
   const receiver = msg.to() // 消息接收人
-  const content = msg.text() // 消息内容
+  var content = msg.text() // 消息内容
   const room = msg.room() // 是否是群消息
   const roomName = (await room?.topic()) || null // 群名称
-  const alias = (await contact.alias()) || (await contact.name()) // 发消息人昵称
+  const alias = (await contact.alias()) || (await contact.name()) // 发消息人的通讯录备注/昵称(不是群昵称)
   const remarkName = await contact.alias() // 备注名称
   const name = await contact.name() // 微信名称
   const isText = msg.type() === bot.Message.Type.Text // 消息类型是否为文本
+  // if(isText){
+  //   console.log('🌸🌸🌸 / content: ', content)
+  // }
   const isRoom = roomWhiteList.includes(roomName)  // 是否在群聊白名单内并且艾特了机器人
   const isAlias = aliasWhiteList.includes(remarkName) || aliasWhiteList.includes(name) // 发消息的人是否在联系人白名单内
   const isBotSelf = botName === remarkName || botName === name // 是否是机器人自己
@@ -112,6 +107,11 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   try {
     // 区分群聊和私聊
     if (isRoom && room) {
+      const isQuote=content.includes('- - - - - - - - - - - - - - -')
+      if(isQuote){//是回复
+        content=content.split('- - - - - - - - - - - - - - -\n')[1] //获取回复的内容
+        //console.log('real content',content)
+      }
       const isMention = prefixName.some(prefix => {
         // startswith避免引用
         // 微信的艾特后面是一个特殊符号，不是普通空格
