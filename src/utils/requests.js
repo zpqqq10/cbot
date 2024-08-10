@@ -1,7 +1,7 @@
 import axios from 'axios'
-import env from './env.js'
+import {tianKey} from './env.js'
 //导入心语api
-const tianKey = env.TIAN_KEY
+
 
 
 export async function zaoan() {
@@ -84,4 +84,21 @@ export async function hitokoto(type) {
         // 处理请求错误
         return 'Failed to fetch data.'
     }
+}
+
+export async function help(){
+    return `
+        可用命令列表：
+        - 新生指引：获取浙江大学新生指引链接。
+        - 24点：获取一组随机数字，用于24点游戏。
+        - 早安心语：获取早安问候语。
+        - 开e!：获取网易云音乐的随机热评。
+        - 动漫一言：获取动漫中的随机名言。
+        - 小说一言：获取小说中的随机名言。
+        - 诗词一言：获取诗词中的随机名言。
+        - 发疯：获取随机的疯狂语句。
+        - 帮助: 获取帮助信息。
+        - 除了这些关键字之外，会调用大模型来回答：有一定概率将获得随机回复，否则为大模型回答。
+    `;
+      
 }

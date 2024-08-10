@@ -1,18 +1,10 @@
 import { getServe } from './serve.js'
-import env from '../utils/env.js';
+//import env from '../utils/env.js';
 import { repo24, repoFeng, repoBullshit } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
-import { hitokoto, zaoan, wangyiyun } from '../utils/requests.js'
-
-// 从环境变量中导入机器人的名称
-const botName = env.BOT_NAME
-//触发机器人的前缀
-const prefixName = env.PREFIX ? env.PREFIX.split(',') : []
-// 从环境变量中导入联系人白名单
-const aliasWhiteList = env.ALIAS_WHITELIST ? env.ALIAS_WHITELIST.split(',') : []
-
-// 从环境变量中导入群聊白名单
-const roomWhiteList = env.ROOM_WHITELIST ? env.ROOM_WHITELIST.split(',') : []
+import { hitokoto, zaoan, wangyiyun,help } from '../utils/requests.js'
+import { botName, prefixName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
+import {replyTimeLimit,llmProbs,questionMaxLength,questionMinLength,numMsgGuide} from '../utils/env.js'
 
 let lastThree = [];
 let repeatedWord = '';
@@ -43,7 +35,7 @@ async function autoReply(isRoom, question, room, talker, type) {//根据聊天�
 
 let lastQueryTime = 0
 async function handleCommands(question, room, aibot) {
-  if (Date.now() - lastQueryTime < 3000) {
+  if (Date.now() - lastQueryTime < replyTimeLimit) {
     await room.say('你们打字跟机关枪一样，打这么快我怎么回')
     return;
   }
@@ -75,14 +67,17 @@ async function handleCommands(question, room, aibot) {
     case '发疯':
       await room.say(getRandomEle(repoFeng))
       return
+    case '帮助':
+      await room.say(await help())
+      return
     default:
-      if (question.length < 3) {
+      if (question.length < questionMinLength) {
         await room.say(getRandomEle(repoBullshit))
         return
       }
       const randomNum = Math.random()
       // 如果问题太长就不走llm了
-      if (question.length < 256 && randomNum < 0.6) {
+      if (question.length < questionMaxLength && randomNum < llmProbs) {
         await room.say(await aibot(question))
       } else {
         await room.say(getRandomEle(repoBullshit))
@@ -92,26 +87,43 @@ async function handleCommands(question, room, aibot) {
   }
   return
 }
-
+let msgCount={}
 export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   const getReply = getServe(ServiceType)
   const contact = msg.talker() // 发消息人
   const receiver = msg.to() // 消息接收人
-  const content = msg.text() // 消息内容
+  var content = msg.text() // 消息内容
   const room = msg.room() // 是否是群消息
   const roomName = (await room?.topic()) || null // 群名称
-  const alias = (await contact.alias()) || (await contact.name()) // 发消息人昵称
+  const alias = (await contact.alias()) || (await contact.name()) // 发消息人的通讯录备注/昵称(不是群昵称)
   const remarkName = await contact.alias() // 备注名称
   const name = await contact.name() // 微信名称
   const isText = msg.type() === bot.Message.Type.Text // 消息类型是否为文本
-  const isRoom = roomWhiteList.includes(roomName)  // 是否在群聊白名单内并且艾特了机器人
+  // if(isText){
+  //   console.log('🌸🌸🌸 / content: ', content)
+  // }
+  const isRoom = roomWhiteList.includes(roomName)  // 是否在群聊白名单内
   const isAlias = aliasWhiteList.includes(remarkName) || aliasWhiteList.includes(name) // 发消息的人是否在联系人白名单内
   const isBotSelf = botName === remarkName || botName === name // 是否是机器人自己
+  if(isRoom){
+    if(msgCount[roomName]) msgCount[roomName]++;
+    else msgCount[roomName]=1
+    console.log('msg',roomName,msgCount[roomName])
+  }
   // TODO 你们可以根据自己的需求修改这里的逻辑
   if (isBotSelf) return // 如果是机器人自己发送的消息或者消息类型不是文本则不处理
   try {
     // 区分群聊和私聊
     if (isRoom && room) {
+      if(msgCount[roomName]==numMsgGuide){
+        msgCount[roomName]=1;
+        await room.say(`[每${numMsgGuide}条消息自动推送] 不会还有新生没看新生指南吧？[旺柴][旺柴][旺柴]:https://zjuers.com/welcome`)
+      }
+      const isQuote=content.includes('- - - - - - - - - - - - - - -')
+      if(isQuote){//是回复
+        content=content.split('- - - - - - - - - - - - - - -\n')[1] //获取回复的内容
+        //console.log('real content',content)
+      }
       const isMention = prefixName.some(prefix => {
         // startswith避免引用
         // 微信的艾特后面是一个特殊符号，不是普通空格
@@ -129,6 +141,7 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
       const timeout = 500 + Math.floor(Math.random() * 1000)
       await new Promise(resolve => setTimeout(resolve, timeout));//随机延迟
       await handleCommands(question, room, getReply)
+      msgCount[roomName]++
 
     }
     // 私人聊天，白名单内的直接发送
