@@ -2,11 +2,11 @@ import { getServe } from './serve.js'
 //import env from '../utils/env.js';
 import { repo24, repoFeng, repoBullshit } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
-import { hitokoto, zaoan, wangyiyun,help } from '../utils/requests.js'
-import { botName, prefixName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
-import {replyTimeLimit,llmProbs,questionMaxLength,questionMinLength,numMsgGuide} from '../utils/env.js'
+import { hitokoto, zaoan, wangyiyun, help } from '../utils/requests.js'
+import { botName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
+import { replyTimeLimit, llmProbs, questionMaxLength, questionMinLength, numMsgGuide } from '../utils/env.js'
 
-let lastThree = [];
+let lastThree = ['', '', ''];
 let repeatedWord = '';
 // 这里的question是没有艾特的
 async function autoReply(isRoom, question, room, talker, type) {//根据聊天内容自动触发，不需要@
@@ -18,10 +18,8 @@ async function autoReply(isRoom, question, room, talker, type) {//根据聊天�
   if (type == 7 && isRoom) {
     // text
     lastThree.push(question);
-    if (lastThree.length > 3) {
-      lastThree.shift();
-    }
-    if (lastThree.length == 3 && lastThree[0] == lastThree[1]
+    lastThree.shift();
+    if (lastThree[0] == lastThree[1]
       && lastThree[1] == lastThree[2] && lastThree[0] != repeatedWord) {
       repeatedWord = lastThree[0];
       await room.say(lastThree[1])
@@ -34,9 +32,15 @@ async function autoReply(isRoom, question, room, talker, type) {//根据聊天�
 }
 
 let lastQueryTime = 0
-async function handleCommands(question, room, aibot) {
+let isLastLLM = false
+async function handleCommands(question, room, aibot, talker) {
   if (Date.now() - lastQueryTime < replyTimeLimit) {
-    await room.say('你们打字跟机关枪一样，打这么快我怎么回')
+    const randomNumm = Math.random()
+    if (randomNumm < 0.5) {
+      await room.say('你们打字跟机关枪一样，打这么快我怎么回')
+    } else {
+      await room.say('能不能慢一点呀，穷寇莫追啊！')
+    }
     return;
   }
   lastQueryTime = Date.now()
@@ -49,7 +53,6 @@ async function handleCommands(question, room, aibot) {
       return
     case '早安心语':
       await room.say(await zaoan())
-      // await room.say('说了不可用你还发，看不懂中文？')
       return
     case '开e！':
     case '开e!':
@@ -70,6 +73,9 @@ async function handleCommands(question, room, aibot) {
     case '帮助':
       await room.say(await help())
       return
+    case '-h':
+      await room.say('你很聪明但是这个人很懒，什么也没有留下~')
+      return
     default:
       if (question.length < questionMinLength) {
         await room.say(getRandomEle(repoBullshit))
@@ -77,9 +83,11 @@ async function handleCommands(question, room, aibot) {
       }
       const randomNum = Math.random()
       // 如果问题太长就不走llm了
-      if (question.length < questionMaxLength && randomNum < llmProbs) {
-        await room.say(await aibot(question))
+      if (question.length < questionMaxLength && (question.startsWith('boy') || !isLastLLM || randomNum < llmProbs)) {
+        isLastLLM = true
+        await room.say(await aibot(question, talker.name()))
       } else {
+        isLastLLM = false
         await room.say(getRandomEle(repoBullshit))
       }
       break
@@ -87,12 +95,14 @@ async function handleCommands(question, room, aibot) {
   }
   return
 }
-let msgCount={}
+
+let msgCount = {}
 export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   const getReply = getServe(ServiceType)
   const contact = msg.talker() // 发消息人
   const receiver = msg.to() // 消息接收人
   var content = msg.text() // 消息内容
+  const isQuote = content.includes('- - - - - - - - - - - - - - -')
   const room = msg.room() // 是否是群消息
   const roomName = (await room?.topic()) || null // 群名称
   const alias = (await contact.alias()) || (await contact.name()) // 发消息人的通讯录备注/昵称(不是群昵称)
@@ -105,31 +115,31 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   const isRoom = roomWhiteList.includes(roomName)  // 是否在群聊白名单内
   const isAlias = aliasWhiteList.includes(remarkName) || aliasWhiteList.includes(name) // 发消息的人是否在联系人白名单内
   const isBotSelf = botName === remarkName || botName === name // 是否是机器人自己
-  if(isRoom){
-    if(msgCount[roomName]) msgCount[roomName]++;
-    else msgCount[roomName]=1
-    console.log('msg',roomName,msgCount[roomName])
+  if (isRoom) {
+    if (msgCount[roomName]) msgCount[roomName]++;
+    else msgCount[roomName] = 1
+    // console.log('msg', roomName, msgCount[roomName])
   }
   // TODO 你们可以根据自己的需求修改这里的逻辑
   if (isBotSelf) return // 如果是机器人自己发送的消息或者消息类型不是文本则不处理
   try {
     // 区分群聊和私聊
     if (isRoom && room) {
-      if(msgCount[roomName]==numMsgGuide){
-        msgCount[roomName]=1;
-        await room.say(`[每${numMsgGuide}条消息自动推送] 不会还有新生没看新生指南吧？[旺柴][旺柴][旺柴]:https://zjuers.com/welcome`)
-      }
-      const isQuote=content.includes('- - - - - - - - - - - - - - -')
-      if(isQuote){//是回复
-        content=content.split('- - - - - - - - - - - - - - -\n')[1] //获取回复的内容
+      // if (msgCount[roomName] == numMsgGuide) {
+      //   msgCount[roomName] = 1;
+      //   await room.say(`[每${numMsgGuide}条消息自动推送] 不会还有新生没看新生指南吧？[旺柴][旺柴][旺柴]:https://zjuers.com/welcome`)
+      // }
+      if (isQuote) {//是回复
+        content = content.split('- - - - - - - - - - - - - - -\n')[1] //获取回复的内容
         //console.log('real content',content)
       }
-      const isMention = prefixName.some(prefix => {
-        // startswith避免引用
-        // 微信的艾特后面是一个特殊符号，不是普通空格
-        return content.startsWith(prefix + ' ');
-      });
-      // a bug in the lib
+      // 微信的艾特后面是一个特殊符号，不是普通空格
+      const isMention = content.startsWith(botName + ' ') // 是否艾特了机器人
+      // const isMention = prefixName.some(prefix => {
+      //   // startswith避免引用
+      //   return content.startsWith(prefix + ' ');
+      // });
+      // a bug in the lib, not usable
       // const isMention = await msg.mentionSelf() // 是否艾特了机器人
       //查找是否包含所需的前缀,如[bot],@bot等
       if (!isMention) {
@@ -140,8 +150,8 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
       //随机数
       const timeout = 500 + Math.floor(Math.random() * 1000)
       await new Promise(resolve => setTimeout(resolve, timeout));//随机延迟
-      await handleCommands(question, room, getReply)
-      msgCount[roomName]++
+      await handleCommands(question, room, getReply, contact)
+      // msgCount[roomName]++
 
     }
     // 私人聊天，白名单内的直接发送

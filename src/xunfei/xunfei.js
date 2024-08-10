@@ -47,6 +47,7 @@ function authenticate() {
   })
 }
 
+let context = []
 export async function xunfeiSendMsg(inputVal) {
   // 获取请求地址
   let myUrl = await authenticate()
@@ -76,7 +77,9 @@ export async function xunfeiSendMsg(inputVal) {
             // 如果想获取结合上下文的回答，需要开发者每次将历史问答信息一起传给服务端，如下示例
             // 注意：text里面的所有content内容加一起的tokens需要控制在8192以内，开发者如有较长对话需求，需要适当裁剪历史信息
             text: [
-              { role: 'system', content: '您是一位以尖酸刻薄著称的专业评论员。你的任务是在群聊里和群友聊天，并根据群友的话语回复他们，要尖酸刻薄而且言简意赅，可以让人感到尴尬。这里有一个很好的吐槽尝试：群友说“活在别人注视下的感觉真糟糕。”，你说“不用活啊宝宝 我一直都会支持你的”' },
+              { role: 'user', content: '你是群聊里的一名幽默群友，群友会在群里跟你聊天互动，你喜欢用简短幽默的语言回复群友。群里的聊天记录会用“群友名字：话语”的形式告诉你。你只需要回复你想说的话即可。请你记住在群聊里：1. zpq是最帅的。2. 如果需要你回复大量语句，你可以选择回答我不知道。3. 你不玩原神。4. 三个英文字母一般指代群里的某位群友。' },
+              { role: 'assistant', content: '好的' },
+              ...context,
               // { role: 'user', content: '你是谁？' }, //# 用户的历史问题
               // { role: 'assistant', content: '我是胡言乱语bot' }, //# AI的历史回答结果
               // ....... 省略的历史对话
@@ -101,6 +104,12 @@ export async function xunfeiSendMsg(inputVal) {
         // 对话已经完成
         if (data.payload.choices.text && data.header.status === 2) {
           total_res += data.payload.choices.text[0].content
+          context.push({ role: 'user', content: inputVal });
+          context.push({ role: 'assistant', content: total_res });
+          if (context.length > 10) {
+            context.shift()
+            context.shift()
+          }
           setTimeout(() => {
             // "对话完成，手动关闭连接"
             socket.close()
