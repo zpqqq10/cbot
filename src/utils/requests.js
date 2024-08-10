@@ -1,7 +1,7 @@
 import axios from 'axios'
-import env from './env.js'
+import {tianKey} from './env.js'
 //导入心语api
-const tianKey = env.TIAN_KEY
+
 
 
 export async function zaoan() {

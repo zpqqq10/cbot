@@ -4,7 +4,7 @@ import { repo24, repoFeng, repoBullshit } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
 import { hitokoto, zaoan, wangyiyun,help } from '../utils/requests.js'
 import { botName, prefixName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
-
+import {replyTimeLimit,llmProbs,questionMaxLength,questionMinLength} from '../utils/env.js'
 
 let lastThree = [];
 let repeatedWord = '';
@@ -35,7 +35,7 @@ async function autoReply(isRoom, question, room, talker, type) {//根据聊天�
 
 let lastQueryTime = 0
 async function handleCommands(question, room, aibot) {
-  if (Date.now() - lastQueryTime < 3000) {
+  if (Date.now() - lastQueryTime < replyTimeLimit) {
     await room.say('你们打字跟机关枪一样，打这么快我怎么回')
     return;
   }
@@ -67,14 +67,17 @@ async function handleCommands(question, room, aibot) {
     case '发疯':
       await room.say(getRandomEle(repoFeng))
       return
+    case '帮助':
+      await room.say(await help())
+      return
     default:
-      if (question.length < 3) {
+      if (question.length < questionMinLength) {
         await room.say(getRandomEle(repoBullshit))
         return
       }
       const randomNum = Math.random()
       // 如果问题太长就不走llm了
-      if (question.length < 256 && randomNum < 0.6) {
+      if (question.length < questionMaxLength && randomNum < llmProbs) {
         await room.say(await aibot(question))
       } else {
         await room.say(getRandomEle(repoBullshit))
