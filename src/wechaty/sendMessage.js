@@ -14,12 +14,30 @@ const aliasWhiteList = env.ALIAS_WHITELIST ? env.ALIAS_WHITELIST.split(',') : []
 // 从环境变量中导入群聊白名单
 const roomWhiteList = env.ROOM_WHITELIST ? env.ROOM_WHITELIST.split(',') : []
 
-
-async function autoReply(question, room, talker, type) {//根据聊天内容自动触发，不需要@
+let lastThree = [];
+let repeatedWord = '';
+// 这里的question是没有艾特的
+async function autoReply(isRoom, question, room, talker, type) {//根据聊天内容自动触发，不需要@
   //console.log(question,talker.name(),type)
   if (talker.name() == 'bot') return
   if ((type == 5 || type == 6 || type == 14)) {// 图片/表情/链接
     return
+  }
+  if (type == 7 && isRoom) {
+    // text
+    lastThree.push(question);
+    if (lastThree.length > 3) {
+      lastThree.shift();
+    }
+    if (lastThree.length == 3 && lastThree[0] == lastThree[1]
+      && lastThree[1] == lastThree[2] && lastThree[0] != repeatedWord) {
+      repeatedWord = lastThree[0];
+      await room.say(lastThree[1])
+      return
+    } else {
+      repeatedWord = '';
+      return
+    }
   }
 }
 
@@ -103,7 +121,7 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
       // const isMention = await msg.mentionSelf() // 是否艾特了机器人
       //查找是否包含所需的前缀,如[bot],@bot等
       if (!isMention) {
-        autoReply(content, room, contact, msg.type())
+        autoReply(isRoom, content, room, contact, msg.type())
         return;
       }
       const question = content.replace(`${botName} `, '') // 去掉艾特的消息主体
