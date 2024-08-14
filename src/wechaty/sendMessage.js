@@ -7,7 +7,7 @@ import { botName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
 import { replyTimeLimit, llmProbs, questionMaxLength, questionMinLength, numMsgGuide } from '../utils/env.js'
 import { FileBox } from 'file-box'
 
-let lastTwo = ['', '', ''];
+let lastTwo = ['', ''];
 let repeatedWord = '';
 // 这里的question是没有艾特的
 async function autoReply(isRoom, question, room, talker, msg) {//根据聊天内容自动触发，不需要@
