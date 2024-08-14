@@ -106,7 +106,7 @@ export async function xunfeiSendMsg(inputVal) {
           total_res += data.payload.choices.text[0].content
           context.push({ role: 'user', content: inputVal });
           context.push({ role: 'assistant', content: total_res });
-          if (context.length > 10) {
+          if (context.length > 20) {
             context.shift()
             context.shift()
           }

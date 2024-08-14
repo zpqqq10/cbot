@@ -23,15 +23,26 @@ if (env.OPENAI_PROXY_URL) {
 }
 const openai = new OpenAIApi(config)
 const chosen_model = env.OPENAI_MODEL || 'gpt-4o'
-export async function getGptReply(prompt) {
+let context = []
+
+
+export async function getGptReply(prompt, talker) {
+  prompt = talker + '：' + prompt
   console.log('🚀🚀🚀 / prompt', prompt)
   const response = await openai.chat.completions.create({
     messages: [
       { role: 'system', content: env.OPENAI_SYSTEM_MESSAGE },
+      ...context,
       { role: 'user', content: prompt },
     ],
     model: chosen_model,
   })
   console.log('🚀🚀🚀 / reply', response.choices[0].message.content)
-  return `${response.choices[0].message.content}\nVia ${chosen_model}`
+  context.push({ role: 'user', content: prompt });
+  context.push({ role: 'assistant', content: response.choices[0].message.content });
+  if (context.length > 20) {
+    context.shift()
+    context.shift()
+  }
+  return `${response.choices[0].message.content}`
 }

@@ -1,28 +1,40 @@
 import { getServe } from './serve.js'
 //import env from '../utils/env.js';
-import { repo24, repoFeng, repoBullshit } from '../assets/index.js'
+import { repo24, repoFeng, repoBullshit, diaotu } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
 import { hitokoto, zaoan, wangyiyun, help } from '../utils/requests.js'
 import { botName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
 import { replyTimeLimit, llmProbs, questionMaxLength, questionMinLength, numMsgGuide } from '../utils/env.js'
+import { FileBox } from 'file-box'
 
-let lastThree = ['', '', ''];
+let lastTwo = ['', '', ''];
 let repeatedWord = '';
 // 这里的question是没有艾特的
-async function autoReply(isRoom, question, room, talker, type) {//根据聊天内容自动触发，不需要@
+async function autoReply(isRoom, question, room, talker, msg) {//根据聊天内容自动触发，不需要@
+  const type = msg.type();
   //console.log(question,talker.name(),type)
   if (talker.name() == 'bot') return
-  if ((type == 5 || type == 6 || type == 14)) {// 图片/表情/链接
-    return
+  if (type == 5 && isRoom) {
+    // emotion
+    const emotionMD5 = question.match(/md5="([^"]+)"/)[1]
+    lastTwo.push(emotionMD5)
+    lastTwo.shift()
+    if (lastTwo[0] == lastTwo[1] && lastTwo[0] != repeatedWord) {
+      repeatedWord = lastTwo[0];
+      await msg.forward(room);
+      return
+    } else {
+      repeatedWord = '';
+      return
+    }
   }
   if (type == 7 && isRoom) {
-    // text
-    lastThree.push(question);
-    lastThree.shift();
-    if (lastThree[0] == lastThree[1]
-      && lastThree[1] == lastThree[2] && lastThree[0] != repeatedWord) {
-      repeatedWord = lastThree[0];
-      await room.say(lastThree[1])
+    // text 
+    lastTwo.push(question);
+    lastTwo.shift();
+    if (lastTwo[0] == lastTwo[1] && lastTwo[0] != repeatedWord) {
+      repeatedWord = lastTwo[0];
+      await room.say(lastTwo[1])
       return
     } else {
       repeatedWord = '';
@@ -77,7 +89,14 @@ async function handleCommands(question, room, aibot, talker) {
       await room.say('你很聪明但是这个人很懒，什么也没有留下~')
       return
     default:
-      if (question.length < questionMinLength) {
+      if (question.includes('prompt') || question.includes('提示') || question.includes('背景知识')) {
+        await room.say('你在说啥')
+        return
+      } else if (question.includes('发个图') || question.includes('屌图') || question.includes('发图') || question.includes('弔图')) {
+        const fileName = getRandomEle(diaotu)
+        await room.say(FileBox.fromFile(`src/assets/diaotu/${fileName}`))
+        return
+      } else if (question.length < questionMinLength) {
         await room.say(getRandomEle(repoBullshit))
         return
       }
@@ -109,9 +128,7 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
   const remarkName = await contact.alias() // 备注名称
   const name = await contact.name() // 微信名称
   const isText = msg.type() === bot.Message.Type.Text // 消息类型是否为文本
-  // if(isText){
-  //   console.log('🌸🌸🌸 / content: ', content)
-  // }
+  const isEmotion = msg.type() === bot.Message.Type.Emoticon // 消息类型是否为表情
   const isRoom = roomWhiteList.includes(roomName)  // 是否在群聊白名单内
   const isAlias = aliasWhiteList.includes(remarkName) || aliasWhiteList.includes(name) // 发消息的人是否在联系人白名单内
   const isBotSelf = botName === remarkName || botName === name // 是否是机器人自己
@@ -131,20 +148,20 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
       // }
       if (isQuote) {//是回复
         content = content.split('- - - - - - - - - - - - - - -\n')[1] //获取回复的内容
-        //console.log('real content',content)
       }
       // 微信的艾特后面是一个特殊符号，不是普通空格
       const isMention = content.startsWith(botName + ' ') // 是否艾特了机器人
-      // const isMention = prefixName.some(prefix => {
-      //   // startswith避免引用
-      //   return content.startsWith(prefix + ' ');
-      // });
       // a bug in the lib, not usable
       // const isMention = await msg.mentionSelf() // 是否艾特了机器人
       //查找是否包含所需的前缀,如[bot],@bot等
-      if (!isMention) {
-        autoReply(isRoom, content, room, contact, msg.type())
+      if (!isMention || isEmotion) {
+        autoReply(isRoom, content, room, contact, msg)
         return;
+      }
+      // 屏蔽yy
+      if (contact.name() == '歪方') {
+        await room.say('狗叫什么啊你')
+        return
       }
       const question = content.replace(`${botName} `, '') // 去掉艾特的消息主体
       //随机数
