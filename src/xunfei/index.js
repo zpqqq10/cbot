@@ -1,6 +1,6 @@
 import { xunfeiSendMsg } from './xunfei.js'
 
-export async function getXunfeiReply(prompt, talker, name) {
+export async function getXunfeiReply(prompt, room, talker, name) {
   if (typeof talker != 'undefined') {
     prompt = talker + '：' + prompt
   }

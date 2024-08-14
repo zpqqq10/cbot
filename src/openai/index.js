@@ -26,7 +26,7 @@ const chosen_model = env.OPENAI_MODEL || 'gpt-4o'
 let context = []
 
 
-export async function getGptReply(prompt, talker) {
+export async function getGptReply(prompt, room, talker) {
   prompt = talker + '：' + prompt
   console.log('🚀🚀🚀 / prompt', prompt)
   const response = await openai.chat.completions.create({

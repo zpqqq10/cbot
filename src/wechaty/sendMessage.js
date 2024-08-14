@@ -82,9 +82,9 @@ async function handleCommands(question, room, aibot, talker) {
     case '发疯':
       await room.say(getRandomEle(repoFeng))
       return
-    case '帮助':
-      await room.say(await help())
-      return
+    // case '帮助':
+    //   await room.say(await help())
+    //   return
     case '-h':
       await room.say('你很聪明但是这个人很懒，什么也没有留下~')
       return
@@ -104,7 +104,7 @@ async function handleCommands(question, room, aibot, talker) {
       // 如果问题太长就不走llm了
       if (question.length < questionMaxLength && (question.startsWith('boy') || !isLastLLM || randomNum < llmProbs)) {
         isLastLLM = true
-        await room.say(await aibot(question, talker.name()))
+        await room.say(await aibot(question, await room.topic(), talker.name()))
       } else {
         isLastLLM = false
         await room.say(getRandomEle(repoBullshit))

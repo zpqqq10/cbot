@@ -2,6 +2,7 @@ import { getGptReply } from '../openai/index.js'
 import { getKimiReply } from '../kimi/index.js'
 import { getXunfeiReply } from '../xunfei/index.js'
 import { getDeepSeekFreeReply } from '../deepseek-free/index.js'
+import { getAliReply } from '../aliapp/index.js'
 
 /**
  * 获取ai服务
@@ -18,6 +19,8 @@ export function getServe(serviceType) {
       return getXunfeiReply
     case 'deepseek-free':
       return getDeepSeekFreeReply
+    case 'Ali':
+      return getAliReply
     default:
       return getGptReply
   }
