@@ -43,10 +43,17 @@ async function autoReply(isRoom, question, room, talker, msg) {//根据聊天内
   }
 }
 
-let lastQueryTime = 0
+let lastQueryTime = {}
 let isLastLLM = false
 async function handleCommands(question, room, aibot, talker) {
-  if (Date.now() - lastQueryTime < replyTimeLimit) {
+  const roomName = await room.topic()
+  var lastTime = 0
+  if (roomName in lastQueryTime) {
+    lastTime = lastQueryTime[roomName]
+  } else {
+    lastQueryTime[roomName] = 0
+  }
+  if (Date.now() - lastTime < replyTimeLimit) {
     const randomNumm = Math.random()
     if (randomNumm < 0.5) {
       await room.say('你们打字跟机关枪一样，打这么快我怎么回')
@@ -55,7 +62,7 @@ async function handleCommands(question, room, aibot, talker) {
     }
     return;
   }
-  lastQueryTime = Date.now()
+  lastQueryTime[roomName] = Date.now()
   switch (question) {
     case '新生指引':
       await room.say('浙大新生指引:https://zjuers.com/welcome')
@@ -85,6 +92,7 @@ async function handleCommands(question, room, aibot, talker) {
     // case '帮助':
     //   await room.say(await help())
     //   return
+    case '--help':
     case '-h':
       await room.say('你很聪明但是这个人很懒，什么也没有留下~')
       return
@@ -104,7 +112,7 @@ async function handleCommands(question, room, aibot, talker) {
       // 如果问题太长就不走llm了
       if (question.length < questionMaxLength && (question.startsWith('boy') || !isLastLLM || randomNum < llmProbs)) {
         isLastLLM = true
-        await room.say(await aibot(question, await room.topic(), talker.name()))
+        await room.say(await aibot(question, roomName, talker.name()))
       } else {
         isLastLLM = false
         await room.say(getRandomEle(repoBullshit))

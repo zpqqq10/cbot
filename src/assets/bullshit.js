@@ -33,5 +33,10 @@ export const repoBullshit = [
     `？`,
     `？`,
     `？`,
-    `我来搞定变色油墨`
+    `我来搞定变色油墨`,
+    `我来搞定无酸纸`,
+    `What are your superpowers again?`,
+    `I bought the bank`,
+    `Consider this a professional courtesy`,
+    `When you're in a Jaeger, suddenly, you can fight the hurricane. You can win.`
 ]
