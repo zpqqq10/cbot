@@ -1,6 +1,6 @@
 import { getServe } from './serve.js'
 //import env from '../utils/env.js';
-import { repo24, repoFeng, repoBullshit, diaotu } from '../assets/index.js'
+import { repo24, repoFeng, repoBullshit, diaotu, repoRuozhi } from '../assets/index.js'
 import { getRandomEle } from '../utils/common.js';
 import { hitokoto, zaoan, wangyiyun, help } from '../utils/requests.js'
 import { botName, aliasWhiteList, roomWhiteList } from '../utils/env.js'
@@ -104,7 +104,11 @@ async function handleCommands(question, room, aibot, talker) {
         const fileName = getRandomEle(diaotu)
         await room.say(FileBox.fromFile(`src/assets/diaotu/${fileName}`))
         return
-      } else if (question.length < questionMinLength) {
+      } else if (question.includes('弱智')) {
+        await room.say(getRandomEle(repoRuozhi))
+        return
+      }
+      else if (question.length < questionMinLength) {
         await room.say(getRandomEle(repoBullshit))
         return
       }
