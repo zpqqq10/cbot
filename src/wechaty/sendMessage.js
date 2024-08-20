@@ -21,9 +21,13 @@ async function autoReply(isRoom, question, room, talker, msg) {//根据聊天内
     lastTwo.shift()
     if (lastTwo[0] == lastTwo[1] && lastTwo[0] != repeatedWord) {
       repeatedWord = lastTwo[0];
-      await msg.forward(room);
+      if (lastTwo[0] == 'b4e94d227527f166e7943a9e6456da5b' || lastTwo[0] == 'adc66f1303156e2efba77c978fc02f80' || lastTwo[0] == 'd555e386bf96599221008ec0e4aea376') {
+        await room.say('你们对zpq友善点吧/流泪')
+      } else {
+        await msg.forward(room);
+      }
       return
-    } else {
+    } else if (lastTwo[0] != lastTwo[1]) {
       repeatedWord = '';
       return
     }
@@ -36,7 +40,7 @@ async function autoReply(isRoom, question, room, talker, msg) {//根据聊天内
       repeatedWord = lastTwo[0];
       await room.say(lastTwo[1])
       return
-    } else {
+    } else if (lastTwo[0] != lastTwo[1]) {
       repeatedWord = '';
       return
     }

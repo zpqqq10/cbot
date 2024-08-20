@@ -61,15 +61,14 @@ async function onMessage(msg) {
   // await shardingMessage(msg,bot)
 }
 async function onRoomJoin(room, inviteeList, inviter, date) {
-  console.log('onroomjoin')
   const roomName = await room.topic()
   const roomWhiteList = env.ROOM_WHITELIST ? env.ROOM_WHITELIST.split(',') : []
   const isRoom = roomWhiteList.includes(roomName)
   const nameList = inviteeList.map((c) => c.name()).join(',')
-  if (isRoom) {
-    await room.say(`欢迎新群友${nameList},记得修改群昵称为入学年份-专业-名字【真名‼】,如:24-计科-张三。
-    本科新生指引https://zjuers.com/welcome`)
-  }
+  // if (isRoom) {
+  //   await room.say(`欢迎新群友${nameList},记得修改群昵称为入学年份-专业-名字【真名‼】,如:24-计科-张三。
+  //   本科新生指引https://zjuers.com/welcome`)
+  // }
 }
 async function onRoomLeave(room, leaverList, remover, date) {
   console.log('onroomleave')
