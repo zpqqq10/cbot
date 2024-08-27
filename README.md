@@ -165,6 +165,7 @@ ROOM_WHITELIST=XX群1,群2
 $ docker build . -t wechat-bot
 
 $ docker run -d --rm --name wechat-bot -v $(pwd)/.env:/app/.env wechat-bot
+$ docker run -d --rm --name wechat-bot -v $(pwd)/.env:/app/.env -v $(pwd)/curriculum.json:/app/src/assets/curriculum.json wechat-bot
 ```
 
 ## 贡献者们
