@@ -117,6 +117,9 @@ async function handleCommands(question, room, aibot, talker) {
             } else if (question.includes('弱智')) {
                 await room.say(getRandomEle(repoRuozhi))
                 return
+            } else if (question.includes('zpq')) {
+                await room.say('不能说些有营养的吗？')
+                return
             } else if ((roomName == 'ZJU-2024-广东浙大群' || roomName == '糟糕！被饭桶包围了') && question.match(/([[\u4e00-\u9fa5a-zA-Z!@#$%^&*()]+)老师的([[\u4e00-\u9fa5a-zA-Z!@#$%^&*()]+)怎么样/)) {
                 // ask
                 const matchRes = question.match(/([[\u4e00-\u9fa5a-zA-Z!@#$%^&*()]+)老师的([[\u4e00-\u9fa5a-zA-Z!@#$%^&*()]+)怎么样/);
@@ -214,11 +217,19 @@ export async function defaultMessage(msg, bot, ServiceType = 'GPT') {
                 return;
             }
             // 屏蔽yy
-            if (contact.name() == '歪方') {
+            if (contact.name() == '最左川' || contact.name() == '甲鱼🐢') {
                 await room.say('狗叫什么啊你')
+                return
+            } else if (contact.name() == 'March.') {
+                await room.say('😅')
                 return
             }
             const question = content.replace(`${botName} `, '') // 去掉艾特的消息主体
+            if (question.length == 0) {
+                // no msg
+                await room.say('你没事艾特你爹呢')
+                return
+            }
             //随机数
             const timeout = 500 + Math.floor(Math.random() * 1000)
             await new Promise(resolve => setTimeout(resolve, timeout));//随机延迟
